@@ -687,19 +687,28 @@ class Parser
 			preg_match_all('/"[^"]+"|\S+/', $qParam, $matches);
 			$keywords = $matches[0];
 
+			$boolean = 'and';
+
 			//Use default php implementation
 			foreach($keywords as $keyword)
 			{
+				if ($keyword === 'OR') {
+					$boolean = 'or';
+					continue;
+				}
+
 				// Trim quotes
 				$keyword = trim($keyword, "\"");
 
-				$this->query->where(function($query) use($fullTextSearchColumns, $keyword)
+				$this->query->whereNested(function($query) use($fullTextSearchColumns, $keyword)
 				{
 					foreach($fullTextSearchColumns as $column)
 					{
 						$query->orWhere($column, 'LIKE', '%'.$keyword.'%');
 					}
-				});
+				}, $boolean);
+
+				$boolean = 'and';
 			}
 		}
 	}

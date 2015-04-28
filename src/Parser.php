@@ -522,15 +522,7 @@ class Parser
 
 			$pair = [preg_replace('/^-/', '', $sortElem), $direction];
 
-			//Only add the sorts that are on the base resource
-			if(strpos($sortElem, '.') === false) 
-			{
-				call_user_func_array([$this->query, 'orderBy'], $pair);
-			}
-			else
-			{
-				$this->additionalSorts[] = $pair;
-			}
+			call_user_func_array([$this->query, 'orderBy'], $pair);
 		}
 	}
 

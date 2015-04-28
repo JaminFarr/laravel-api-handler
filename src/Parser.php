@@ -688,21 +688,27 @@ class Parser
 			$scoreColumn = Config::get('apihandler.fulltext_score_column');
 			$this->query->addSelect($this->query->raw('MATCH('.implode(',', $fullTextSearchColumns).') AGAINST("'.$qParam.'" IN BOOLEAN MODE) as `'.$scoreColumn.'`'));
 		}
-		else 
+		else
 		{
-			$keywords = explode(' ', $qParam);
+			//Match words between quotes or anything that isn't whitespace.
+			//Example: 'This is a "Search query" ' = ['This', 'is', 'a', '"Search query"']
+			preg_match_all('/"[^"]+"|\S+/', $qParam, $matches);
+			$keywords = $matches[0];
 
 			//Use default php implementation
-			$this->query->where(function($query) use($fullTextSearchColumns, $keywords)
+			foreach($keywords as $keyword)
 			{
-				foreach($fullTextSearchColumns as $column)
+				// Trim quotes
+				$keyword = trim($keyword, "\"");
+
+				$this->query->where(function($query) use($fullTextSearchColumns, $keyword)
 				{
-					foreach($keywords as $keyword)
+					foreach($fullTextSearchColumns as $column)
 					{
 						$query->orWhere($column, 'LIKE', '%'.$keyword.'%');
 					}
-				}
-			});
+				});
+			}
 		}
 	}
 
